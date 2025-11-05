@@ -37,6 +37,9 @@ interface BotOptions {
 	 * The api should return the extra ID as a string to a GET request.
 	 */
 	extraIdApiUrl?: string;
+	/** Optional ticket name filter - if provided, only variants whose name includes this string will be considered */
+	ticketName?: string;
+	filterAway?: string;
 }
 
 export class KideAppBot {
@@ -169,11 +172,39 @@ export class KideAppBot {
 
 		const { variants } = productData.model;
 
-		// --- If variants exist, already, return them -----------
+		// If a ticketName filter is provided, apply it immediately
+		const ticketNameFilter = this.options.ticketName?.toLowerCase();
+		const filterAwayFilter = this.options.filterAway?.toLowerCase();
+		const filterVariants = (vs: Variant[]) =>
+			vs.filter(v => {
+				const name = v.name.toLowerCase();
+				if (ticketNameFilter && !name.includes(ticketNameFilter)) return false;
+				if (filterAwayFilter && name.includes(filterAwayFilter)) return false;
+				return true;
+			});
+
+			if(ticketNameFilter){
+				this.fullLog({
+					icon: ' ✅',
+					title: 'Accept',
+					content: ticketNameFilter,
+				});
+			}
+
+			if(filterAwayFilter){
+				this.fullLog({
+					icon: ' ❌',
+					title: 'Ignore',
+					content: filterAwayFilter,
+				});
+			}
+
+
+		// --- If variants exist already, return them (possibly filtered) -----------
 
 		if (variants.length > 0) {
 			this.silentLog = false;
-			return variants;
+			return filterVariants(variants);
 		}
 
 		// --- Fetch product data until variants exist -----------
@@ -181,7 +212,7 @@ export class KideAppBot {
 		const productDataWithVariants = await this.getProductDataWithVariants(eventUrl);
 
 		this.silentLog = false;
-		return productDataWithVariants.model.variants;
+		return filterVariants(productDataWithVariants.model.variants);
 	}
 
 	protected async reserveTicketVariants(variants: Variant[]) {

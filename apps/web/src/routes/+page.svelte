@@ -6,19 +6,26 @@
 	import LogItem from '$lib/components/Log/LogItem.svelte';
 	import Icon from '@iconify/svelte';
 	import { browser } from '$app/environment';
-	import { PUBLIC_API_URL_HTTP } from '$env/static/public';
+	import { env } from '$env/dynamic/public';
+
+	// Use dynamic public env so missing PUBLIC_ vars don't break the build.
+	const PUBLIC_API_URL_HTTP = env.PUBLIC_API_URL_HTTP ?? '';
 
 	let isRunning = false;
 	let logs: LogMessage[] = [];
 
 	let url = '';
+	let ticketname = '';
+	let filteraway = '';
 	$: disabled = !$tokenIsSet || isRunning;
 
 	const start = () => {
 		logs = [];
 		const bot = new KideAppBot({
 			token: $normalizedToken,
-			extraIdApiUrl: `/api/extra-properties`
+			extraIdApiUrl: `/api/extra-properties`,
+			ticketName: ticketname,
+			filterAway: filteraway
 		});
 		bot.setOnIsActiveChanged(isActive => (isRunning = isActive));
 		bot.setOnLog(log => (logs = [...logs, log]));
@@ -49,8 +56,10 @@
 
 	<!-- Input + button -->
 
-	<div class="flex space-x-4 sm:space-x-8">
-		<input {disabled} type="text" class="input" placeholder="Event URL" bind:value={url} />
+	<div class="flex space-x-4 sm:space-x-4">
+		<input {disabled} type="text" class="input flex-1" placeholder="Event URL" bind:value={url} />
+		<input {disabled} type="text" class="input w-80" placeholder="Ticketname" bind:value={ticketname} />
+		<input {disabled} type="text" class="input w-80" placeholder="Filter away" bind:value={filteraway} />
 		<button
 			{disabled}
 			class="btn variant-filled-primary disabled:variant-filled-surface"
