@@ -17,6 +17,7 @@
 	let url = '';
 	let ticketname = '';
 	let filteraway = '';
+	let xreserved = 0;
 	$: disabled = !$tokenIsSet || isRunning;
 
 	const start = () => {
@@ -25,7 +26,8 @@
 			token: $normalizedToken,
 			extraIdApiUrl: `/api/extra-properties`,
 			ticketName: ticketname,
-			filterAway: filteraway
+			filterAway: filteraway,
+			reserveAmount: xreserved
 		});
 		bot.setOnIsActiveChanged(isActive => (isRunning = isActive));
 		bot.setOnLog(log => (logs = [...logs, log]));
@@ -57,11 +59,23 @@
 	<!-- Input + button -->
 
 	<div class="flex space-x-4 sm:space-x-4">
-		<input {disabled} type="text" class="input flex-1" placeholder="Event URL" bind:value={url} />
-		<input {disabled} type="text" class="input w-80" placeholder="Ticketname" bind:value={ticketname} />
-		<input {disabled} type="text" class="input w-80" placeholder="Filter away" bind:value={filteraway} />
+		<input disabled={disabled} type="text" class="input flex-1" placeholder="Event URL" bind:value={url} />
+		<input disabled={disabled} type="text" class="input w-60" placeholder="Ticketname" bind:value={ticketname} />
+		<input disabled={disabled} type="text" class="input w-60" placeholder="Filter away" bind:value={filteraway} />
+		<input
+			disabled={disabled}
+			type="number"
+			class="input w-20"
+			bind:value={xreserved}
+			min="0"
+			step="1"
+			inputmode="numeric"
+			placeholder="0"
+			title="Number of tickets to reserve - leave as 0 to automatically find max reserve*"
+			aria-label="Reserved tickets"
+		/>
 		<button
-			{disabled}
+			disabled={disabled}
 			class="btn variant-filled-primary disabled:variant-filled-surface"
 			on:click={start}>Start</button
 		>

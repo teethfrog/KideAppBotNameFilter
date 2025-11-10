@@ -40,6 +40,7 @@ interface BotOptions {
 	/** Optional ticket name filter - if provided, only variants whose name includes this string will be considered */
 	ticketName?: string;
 	filterAway?: string;
+	reserveAmount?: number;
 }
 
 export class KideAppBot {
@@ -493,9 +494,14 @@ export class KideAppBot {
 
 	async tryReserveTicketVariant(variant: Variant) {
 		const { productVariantMaximumReservableQuantity, availability, inventoryId } = variant;
-
-		let quantity = Math.min(productVariantMaximumReservableQuantity, availability);
-
+		const reserveAmount = this.options.reserveAmount;
+		let quantity = 1;
+		if(reserveAmount === 0) {
+			quantity = Math.min(productVariantMaximumReservableQuantity, availability);
+		} else if (typeof reserveAmount === 'number') {
+			quantity = reserveAmount;
+		}
+		
 		// ---- Setting timeout ------------------------------
 
 		let timeLimitExceeded = false;
